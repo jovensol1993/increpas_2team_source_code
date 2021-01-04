@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN//"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pSQL">
+
+	<select id="selectListedProducts" resultType="pVO">
+	
+		SELECT
+			p.pno, p.scno, p.cno, p.ino, p.original_price "originalPrice", p.price, 
+			p.discount_rate "discountRate", p.name, p.url, i.image_path "imagePath"
+		FROM
+			product p, image i
+		WHERE
+			p.ino = i.ino AND
+			p.pno IN 
+			<foreach collection="list" item="item" open="(" close=")" separator=",">#{item}</foreach>
+	
+	</select>
+
+	<select id="selectProductsFromCnoList" resultType="pVO">
+	
+		SELECT
+			vvv.pno, vvv.scno, vvv.cno, vvv.ino, vvv.original_price "originalPrice", vvv.price, 
+			vvv.discount_rate "discountRate", vvv.name, vvv.url, vvv.image_path "imagePath"
+		FROM
+			(
+				SELECT
+					ROWNUM rnum, vv.*
+				FROM
+					(
+						SELECT
+							DBMS_RANDOM.VALUE() rand, v.*
+						FROM
+							(
+								SELECT
+									p.pno, p.scno, p.cno, p.ino, p.original_price, p.price, 
+									p.discount_rate, p.name, p.url, i.image_path
+								FROM
+									product p, image i
+								WHERE
+									p.ino = i.ino AND
+									p.cno IN 
+										<foreach collection="list" item="item" open="(" close=")" separator=","> #{item} </foreach>
+							) v
+						ORDER BY
+							rand DESC
+					) vv
+			) vvv
+		WHERE
+			vvv.rnum between 1 and 20
+	
+	</select>
+	
+	<select id="selectListByMaxLikeCnt" parameterType="mVO" resultType="pVO">
+	
+		SELECT
+			p.pno, p.scno, p.cno, p.ino, p.original_price "originalPrice", p.price, 
+			p.discount_rate "discountRate", p.name, p.url, i.image_path "imagePath"
+		FROM	
+			product p , image i,
+			(
+				SELECT
+					vv.pno, vv.cnt
+				FROM
+					(
+						SELECT
+							ROWNUM rnum, vvv.pno, vvv.cnt
+						FROM 
+							(
+								SELECT
+									l.pno, COUNT(l.mno) cnt
+								FROM
+									member m, likes l
+								WHERE
+									m.mno = l.mno AND
+									FLOOR((EXTRACT(year FROM SYSDATE) - EXTRACT(year FROM m.birthday) + 1) / 10) * 10 = #{ageGroup} AND
+									m.gender = #{gender} AND
+									m.mno != #{mno}
+								GROUP BY
+									pno
+							) vvv
+						ORDER BY
+							vvv.cnt DESC
+					) vv
+				WHERE
+					vv.rnum BETWEEN 1 AND 20
+			) v
+		WHERE
+			p.pno = v.pno AND
+			p.ino = i.ino
+	
+	</select>
+	
+	<select id="selectProductsFromListedCategories" resultType="pVO">
+	
+		SELECT 
+			v.pno, v.scno, v.cno, v.ino, v.original_price "originalPrice", 
+			v.price, v.discount_rate "discountRate", v.name, v.url, 
+			v.parent_cno "parentCno", i.image_path "imagePath"
+		FROM
+			(
+				SELECT
+					p.pno, p.scno, p.cno, p.ino, p.original_price, 
+					p.price, p.discount_rate, p.name, p.url, c.parent_cno, 
+					ROW_NUMBER() OVER (PARTITION BY c.parent_cno ORDER BY DBMS_RANDOM.VALUE()) rnum
+				FROM
+					product p, categories c
+				WHERE
+					p.cno = c.cno AND
+					c.parent_cno in 
+						<foreach collection="list" item="item" open="(" close=")" separator=","> #{item.cno} </foreach>	
+									
+			) v,
+			image i
+		WHERE 
+			v.ino = i.ino AND
+			v.rnum BETWEEN 1 AND 20
+	
+	</select>
+	
+</mapper>

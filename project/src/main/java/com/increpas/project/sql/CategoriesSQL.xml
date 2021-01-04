@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cSQL">
+	   	
+	<select id="selectCategoryList" resultType="cVO">
+	    SELECT 
+	        name, cno, NVL(parent_cno, 0) "parentCno"
+	    FROM 
+	        categories 
+	    START WITH 
+	        parent_cno is null 
+	    CONNECT BY PRIOR cno = parent_cno
+   </select>
+   
+   	<select id="selectTop5Categories" resultType="cVO">
+	
+		SELECT
+			vv.cno, vv.name, vv.cnt "likeCnt"
+		FROM
+			(
+				SELECT
+					ROWNUM rnum, c.cno, c.name, v.cnt
+				FROM
+					categories c,
+					(
+						SELECT
+							c.parent_cno cno, count(*) cnt
+						FROM
+							product p, likes l, categories c
+						WHERE
+							p.pno = l.pno AND
+							p.cno = c.cno
+						GROUP BY
+							c.parent_cno
+						ORDER BY
+							cnt DESC
+					) v
+				WHERE
+					c.cno = v.cno
+			) vv
+		WHERE
+			vv.rnum BETWEEN 1 AND 4	
+			
+	</select>
+   
+</mapper>

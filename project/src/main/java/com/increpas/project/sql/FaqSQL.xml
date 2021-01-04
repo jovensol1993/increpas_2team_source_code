@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper namespace="fSQL">
+	<resultMap type="hashmap" id="faqVO">
+		<result property="fno" column="FNO"/>
+		<result property="type" column="TYPE"/>
+		<result property="title" column="TITLE"/>
+ 		<result property="contents" column="CONTENTS" jdbcType="LONGVARCHAR"/>
+		<result property="fdate" column="FDATE"/>
+	</resultMap>
+	
+	<!-- FNO 목록 조회 -->
+	<select id="selectFaqList" resultMap="faqVO" parameterType="fVO">
+		SELECT FNO
+			 , TYPE
+			 , TITLE
+			 , CONTENTS
+			 , TO_CHAR(FDATE, 'YYYY-MM-DD') AS FDATE
+		  FROM FAQ
+		 WHERE 1=1
+		   AND ISSHOW = 'Y'
+		   <if test='type != null and type != "" and type != "전체"'>
+		   AND TYPE = #{type,jdbcType=VARCHAR}
+		   </if>
+		 ORDER BY FNO DESC
+		 /*TODO: 페이징*/
+	</select>
+	
+	<!-- FNO 전체 건수 -->
+	<select id="selectFaqListCount" resultType="int" parameterType="fVO">
+		SELECT
+			COUNT(*)
+		FROM
+			FAQ
+		WHERE 1=1
+		  AND ISSHOW = 'Y'
+		  <if test='type != null and type != "" and type != "전체"'>
+		  AND TYPE = #{type,jdbcType=VARCHAR}
+		  </if>
+	</select>
+	
+	<!-- FNO 내용 조회 -->
+	<select id="selectFaq" resultMap="faqVO" parameterType="fVO">
+		SELECT CONTENTS
+		  FROM FAQ
+		 WHERE FNO = #{fno}
+	</select>
+	
+	<!-- FAQ 게시판 등록 -->
+	<insert id="writeFaq" parameterType="fVO">
+		<selectKey keyProperty="fno" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(FNO) + 1,1)
+			  FROM   FAQ
+		</selectKey>
+			INSERT INTO FAQ 
+			            ( 			fno,
+			                        type, 
+			                        title, 
+			                        contents,
+			                        fdate,
+			                        isshow 
+			            ) 
+			            VALUES 
+			            ( 			
+			            			#{fno},
+			                        #{type}, 
+			                        #{title}, 
+			                        #{contents}, 
+			                        sysdate, 
+			                        #{isshow} 
+			            )
+	</insert>
+	<update id="delFaq" parameterType="fVO">
+		UPDATE FAQ 
+		   SET ISSHOW = 'N' 
+		 WHERE TITLE = #{title}
+
+
+	</update>
+ 
+
+</mapper>

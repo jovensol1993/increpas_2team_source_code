@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC  "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper namespace="sSQL">
+	
+	<!-- 메인검색창 SQL -->
+	<!-- 페이징 + 전체 제품 목록 조회SQL  -->
+	<select id="getAll" resultType="sVO" parameterType="string">
+	SELECT 
+    	*
+	FROM
+	    (
+	    SELECT 
+	        rownum rno, r.*
+	    FROM
+	        (SELECT 
+	            p.pno ppno, p.scno pscno, p.cno pcno, c.name as categname, p.ino pino, p.name pname, 
+	            p.url purl, p.original_price oprice, p.price pprice, p.discount_rate dcrate, 
+	            p.cuno pcuno, i.image_url ilink, i.image_path ipath, i.file_name ifname, l.cnt as likes,
+	            sc.name scname
+	        FROM
+	            product p, socialcommerce sc, image i, categories c,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+	        WHERE
+	            p.scno = sc.scno
+	            AND p.ino = i.ino
+	            AND p.pno = l.pno
+	            AND p.cno = c.cno
+	            AND p.isshow = 'Y'
+	        ORDER BY
+	            l.cnt DESC) r
+	            ) 
+	WHERE
+	    rno BETWEEN 1 AND 30
+	</select>
+	
+	<!-- 페이징 + 전체 제품 필터별 목록 조회SQL  -->
+	<select id="getFilterAll" resultType="sVO" parameterType="string">
+	SELECT 
+    	*
+	FROM
+	    (
+	    SELECT 
+	        rownum rno, r.*
+	    FROM
+	        (SELECT 
+	            p.pno ppno, p.scno pscno, p.cno pcno, c.name as categname, p.ino pino, p.name pname, 
+	            p.url purl, p.original_price oprice, p.price pprice, p.discount_rate dcrate, 
+	            p.cuno pcuno, i.image_url ilink, i.image_path ipath, i.file_name ifname, l.cnt as likes,
+	            sc.name scname
+	        FROM
+	            product p, socialcommerce sc, image i, categories c,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+	        WHERE
+	            p.scno = sc.scno
+	            AND p.ino = i.ino
+	            AND p.pno = l.pno
+	            AND p.cno = c.cno
+	            AND p.isshow = 'Y'
+	        ORDER BY
+	            l.cnt DESC) r
+	        WHERE
+	        	scname LIKE #{filtername}
+	            ) 
+	WHERE
+	    rno BETWEEN 1 AND 30
+	</select>
+	
+	<!-- 총 상품 갯수 SQL -->
+	<select id="countAll" resultType="int">
+		SELECT 
+			count(*) cnt
+		FROM 
+		(
+		  SELECT 
+		        p.*
+		    FROM
+		        product p
+		    WHERE
+		        p.isshow = 'Y'
+		    ORDER BY
+		        p.pno
+		)
+	</select>
+	
+	<!-- 사이드 메뉴용 SQL -->
+	<!-- 소셜커머스별 품목 갯수 목록 SQL -->
+	<select id="listAndCountSc" resultType="sVO">
+		SELECT
+		    COUNT(*) cnt, scname
+		FROM
+		    (SELECT
+		        p.pno, p.scno, sc.name as scname
+		    FROM
+		        product p, socialcommerce sc
+		    WHERE
+		        p.scno = sc.scno
+		        AND p.isshow = 'Y'
+		        )
+		GROUP BY
+		    scname
+	</select>
+	
+	<!-- 카테고리별 품목 갯수 목록 SQL -->
+	<select id = "listAndCountCateg" resultType="sVO">
+	SELECT
+	    COUNT(*) cnt, categname
+	FROM
+	    (SELECT
+	        p.pno, p.cno, c.name as categname
+	    FROM
+	        product p, categories c
+	    WHERE
+	        p.cno = c.cno
+	        AND p.isshow = 'Y'
+	)
+	GROUP BY
+	    categname
+	</select>
+	<!-- 사이드바 SQL 끝  -->
+	
+	<!-- 제품 검색 SQL-->
+	<!-- 검색된 제품 목록 SQL -->
+	<select id="searchProduct" resultType="sVO" parameterType="string">
+		SELECT 
+		    x.rno, x.ppno, x.pscno, x.pcno, x.pino, x.pname, x.purl,
+		    x.oprice, x.pprice, x.dcrate, x.pcuno, x.ilink, x.ipath, x.ifname, x.scname, x.likes
+		FROM
+		    (
+		    SELECT 
+		        rownum rno, r.ppno, r.pscno, r.pcno, r.pino, r.pname, r.purl,
+		        r.oprice, r.pprice, r.dcrate, r.pcuno, r.ilink, r.ipath, r.ifname, r.scname, r.likes
+		    FROM
+		        (SELECT 
+		            p.pno ppno, p.scno pscno, p.cno pcno, p.ino pino, p.name pname, p.url purl, 
+		            p.original_price oprice, p.price pprice, p.discount_rate dcrate, p.cuno pcuno, 
+		            i.image_url ilink, i.image_path ipath, i.file_name ifname, sc.name scname, l.cnt as likes
+		        FROM
+		            product p, socialcommerce sc, image i,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+		        WHERE
+		            p.scno = sc.scno
+		            AND p.ino = i.ino
+		            AND p.isshow = 'Y'
+		            AND p.pno = l.pno
+		            AND p.name LIKE '%'||#{searchword}||'%'
+		        ORDER BY
+		            p.pno) r
+		            ) x
+		    
+	</select>
+	
+	<!-- 검색된 상품 갯수 SQL -->
+	<select id="countSearch" resultType="int">
+		SELECT 
+			count(*) cnt
+		FROM 
+		(
+		  SELECT 
+		        p.*
+		    FROM
+		        product p
+		    WHERE
+		        p.isshow = 'Y'
+		        AND p.name LIKE '%'||#{searchword}||'%'
+		    ORDER BY
+		        p.pno
+		)
+	</select>
+	
+	<!-- 필터별 검색된 상품 갯수 SQL -->
+	<!-- 소셜커머스별 품목 갯수 목록 SQL -->
+	<select id="searchAndCountSc" resultType="sVO" parameterType="string">
+		SELECT
+		    COUNT(*) cnt, scname
+		FROM
+		    (SELECT
+		        p.pno, p.scno, p.name as pname, sc.name as scname
+		    FROM
+		        product p, socialcommerce sc
+		    WHERE
+		        p.scno = sc.scno
+		        AND p.name LIKE '%'||#{searchword}||'%'
+		        AND p.isshow = 'Y'
+		        )
+		GROUP BY
+		    scname
+	</select>
+	
+	<!-- 카테고리별 품목 갯수 목록 SQL -->
+	<select id = "searchAndCountCateg" resultType="sVO">
+	SELECT
+	    COUNT(*) cnt, categname
+	FROM
+	    (SELECT
+	        p.pno, p.cno, p.name as pname, c.name as categname
+	    FROM
+	        product p, categories c
+	    WHERE
+	        p.cno = c.cno
+	        AND p.name LIKE '%'||#{searchword}||'%'
+	        AND p.isshow = 'Y'
+	)
+	GROUP BY
+	    categname
+	</select>
+	
+	<!-- 좋아요, 가격순 등 필터링된 제품검색 SQL -->
+	<select id="resultFilter" resultType="sVO" parameterType="java.util.HashMap">
+		SELECT 
+		     rno,  ppno,  pscno,  pcno,  pino,  pname,  purl,
+		     oprice,  pprice,  dcrate,  pcuno,  ilink,  ipath,  
+		     ifname,  scname, likes
+		FROM
+		    (
+		    SELECT 
+		        rownum rno, r.ppno, r.pscno, r.pcno, r.pino, r.pname, r.purl,
+		        r.oprice, r.pprice, r.dcrate, r.pcuno, r.ilink, r.ipath, r.ifname, r.scname, r.likes
+		    FROM
+		        (SELECT 
+		            p.pno ppno, p.scno pscno, p.cno pcno, p.ino pino, p.name pname, p.url purl, 
+		            p.original_price oprice, p.price pprice, p.discount_rate dcrate, p.cuno pcuno, 
+		            i.image_url ilink, i.image_path ipath, i.file_name ifname, sc.name scname, l.cnt as likes
+		        FROM
+		            product p, socialcommerce sc, image i,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+		        WHERE
+		            p.scno = sc.scno
+		            AND p.ino = i.ino
+		            AND p.isshow = 'Y'
+		            AND p.pno = l.pno
+		            AND p.name LIKE '%'|| #{searchword} ||'%'
+		        ORDER BY
+		            p.pno) r
+		            )
+		ORDER BY
+			${scode}
+	</select>
+	
+	<!-- 사이드바 필터로 필터링된 제품검색 SQL -->
+	<select id="resultSideFilter" resultType="sVO" parameterType="java.util.HashMap">
+		SELECT 
+		     rno,  ppno,  pscno,  pcno, categname,  pino,  pname,  purl,
+		     oprice,  pprice,  dcrate,  pcuno,  ilink,  ipath,  
+		     ifname,  scname, likes
+		FROM
+		    (
+		    SELECT 
+		        rownum rno, r.ppno, r.pscno, r.pcno, r.categname, r.pino, r.pname, r.purl,
+		        r.oprice, r.pprice, r.dcrate, r.pcuno, r.ilink, r.ipath, r.ifname, r.scname, r.likes
+		    FROM
+		        (SELECT 
+		            p.pno ppno, p.scno pscno, p.cno pcno, c.name as categname, p.ino pino, p.name pname, p.url purl, 
+		            p.original_price oprice, p.price pprice, p.discount_rate dcrate, p.cuno pcuno, 
+		            i.image_url ilink, i.image_path ipath, i.file_name ifname, sc.name scname, l.cnt as likes
+		        FROM
+		            product p, socialcommerce sc, image i, categories c,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+		        WHERE
+		            p.scno = sc.scno
+		            AND p.ino = i.ino
+		            AND p.isshow = 'Y'
+		            AND p.pno = l.pno
+		            AND p.cno = c.cno
+		            AND p.name LIKE '%'|| #{searchword} ||'%'
+		        ORDER BY
+		            p.pno) r
+		            )
+		WHERE
+			${sidefilteroption} LIKE '%'|| #{sidefiltername} ||'%' 
+	</select>
+	
+	<!-- 필터링된 제품검색 다시 필터링 SQL -->
+	<select id="resultAndSideFilter" resultType="sVO" parameterType="java.util.HashMap">
+		SELECT 
+		     rno,  ppno,  pscno,  pcno, categname,  pino,  pname,  purl,
+		     oprice,  pprice,  dcrate,  pcuno,  ilink,  ipath,  
+		     ifname,  scname, likes
+		FROM
+		    (
+		    SELECT 
+		        rownum rno, r.ppno, r.pscno, r.pcno, r.categname, r.pino, r.pname, r.purl,
+		        r.oprice, r.pprice, r.dcrate, r.pcuno, r.ilink, r.ipath, r.ifname, r.scname, r.likes
+		    FROM
+		        (SELECT 
+		            p.pno ppno, p.scno pscno, p.cno pcno, c.name as categname, p.ino pino, p.name pname, p.url purl, 
+		            p.original_price oprice, p.price pprice, p.discount_rate dcrate, p.cuno pcuno, 
+		            i.image_url ilink, i.image_path ipath, i.file_name ifname, sc.name scname, l.cnt as likes
+		        FROM
+		            product p, socialcommerce sc, image i, categories c,
+		            (
+			            SELECT
+			                pno, COUNT(*) cnt
+			            FROM 
+			                LIKES
+			            GROUP BY
+			                PNO) l
+		        WHERE
+		            p.scno = sc.scno
+		            AND p.ino = i.ino
+		            AND p.isshow = 'Y'
+		            AND p.pno = l.pno
+		            AND p.cno = c.cno
+		            AND p.name LIKE '%'|| #{searchword} ||'%'
+		        ORDER BY
+		            p.pno) r
+		            )
+		WHERE
+			${sidefilteroption} LIKE '%'|| #{sidefiltername} ||'%' 
+		ORDER BY
+			${scode}
+	</select>
+	
+</mapper>

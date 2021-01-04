@@ -1,0 +1,117 @@
+.main-container + footer .footer{
+	margin-top: 5;
+}
+
+.footer {
+	width:100%;
+	background-color: #ffffff;
+	border-top: 1px solid #ededed;
+}
+
+html, body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4 , h5, h6, pre,
+code , form, fieldset, legend, textarea, p, blockquote, th, td, input, select, textarea,
+button {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-size: 14px;
+	line-height: 1;
+	font-family: 'SpoqaHanSans';
+	-webkit-font-smoothing: antialiased;
+	font-weight: normal;
+}
+
+div {
+	display: block;
+}
+
+html, body {
+	color: #000000;
+}
+
+.footer .inner{
+	width: 1112px;
+	height: 340px;
+	margin: 0 auto;
+	padding: 0 16px;
+	position: relative;
+}
+
+html, body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4 , h5, h6, pre,
+code , form, fieldset, legend, textarea, p, blockquote, th, td, input, select, textarea,
+button {
+	box-sizing: border-box;
+	font-size: 14px;
+	line-height: 1;
+	font-family: 'SpoqaHanSans';
+	-webkit-font-smoothing: antialiased;
+	font-weight: normal;	
+}
+
+.footer .inner .area-link {
+	padding-top: 86px;
+}
+
+dl, ul, ol, menu, li {
+	list-style: none;
+}
+
+ul {
+	display: block;
+	margin-block-start: 1em;
+	margin-block-end: 1em;
+	margin-inline-start: 0px;
+	margin-inline-end: 0px;
+	padding-inline-start: 40px;
+}
+
+.footer .inner .area-link li {
+	display: inline-block;
+}
+
+li {
+	text-align: -webkit-match-parent;
+}
+
+.footer .inner .area-link li .app-download{
+	position: relative;
+	padding-left: 26px !important;
+}
+
+.footer .inner .area-link li a {
+	display: block;
+	line-height: 20px;
+	padding: 0 24px;
+}
+
+a {
+	color: #000000;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.footer .inner .area-link li .app-download:before{
+	width: 18px;
+	height: 18px;
+	background-repeat: no-repeat;
+	background-size: 18px auto;
+	position: absolute;
+	top: 50%;
+	left: 0;
+	margin-top: -8px;
+}
+
+.footer .inner .area-text{
+	font-size: 13px;
+	color: #78909c;
+	line-height: 19px;
+	padding-top: 26px;
+}
+
+.footer .inner .area-bottom {
+	color: #757575;
+	padding-top: 25px;
+}
+
+.footer .inner .area-bottom .info, .footer .inner .area-bottom .address, .footer .inner .area-bottom .copyright {
+	line-height: 19px;
+}
